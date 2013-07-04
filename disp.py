@@ -8,16 +8,16 @@ import os
 from IPython.core.display import Javascript as JS
 from IPython.core.display import display
 
-img = None
+
 class ImgHandler(tornado.web.RequestHandler):
 
-
+    img = None
     def get(self,x=0):
-        if(img==None):
+        if(ImgHandler.img==None):
             return
         #print ImgHandler.img
         tempFile = TemporaryFile()
-        img.save(tempFile)
+        ImgHandler.img.save(tempFile)
         tempFile.seek(0)
         lines = tempFile.readlines()
         #print len(lines)
@@ -27,6 +27,10 @@ class ImgHandler(tornado.web.RequestHandler):
         self.set_header("Content-Length",len(self.output))
         self.write(self.output)
         self.finish()
+        
+    @staticmethod
+    def setImg(i):
+        ImgHandler.img = i
 
 handlers = [
 (r'/static/(.*)', tornado.web.StaticFileHandler, {'path': 'files'}),
@@ -59,14 +63,13 @@ class DisplayNB:
         
 
     def showImg(self,i):
-        global img
-        img = i
+        ImgHandler.setImg(i)
         s = """
             window.disp.stop()
             var img = window.disp.document.getElementById('id_img')
             img.src = "http://localhost:8000/%d.png";
             
-        """ % id(img)
+        """ % id(i)
         display(JS(s))
         
         
